@@ -39,7 +39,7 @@ export default function LoginPage() {
             </div>
             <div>
               <h3 className="font-bold text-white text-base">Student Portal</h3>
-              <p className="text-xs text-slate-400">Official Google Account (@mit.ac.in / @miet.ac.in)</p>
+              <p className="text-xs text-slate-400">College email sign-in or student registration</p>
             </div>
           </div>
           <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-teal-400 group-hover:translate-x-1 transition" />

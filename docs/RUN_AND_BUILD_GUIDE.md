@@ -29,13 +29,17 @@ MONGODB_URI=mongodb://127.0.0.1:27017/dsatrack
 # Cryptographic secret for signing JWT cookies
 JWT_SECRET=super_secret_jwt_key_dsatrack_college_2026
 
+# Supabase Auth (the secret key must remain server-side)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+SUPABASE_SECRET_KEY=your_supabase_secret_key
+
 # Public App Base URL
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Optional Google OAuth Credentials (for live Google Cloud credentials)
-GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
+
+Enable email confirmation in Supabase Auth and add `http://localhost:3000/student/login` to the allowed redirect URLs. For deployment, add the corresponding production student login URL. Student registration is limited to `@mit.ac.in` and `@miet.ac.in`; staff accounts must be created by a Super Admin.
 
 ---
 
@@ -99,10 +103,10 @@ The database is pre-seeded with accounts across all 3 roles:
 | **Super Admin** | System Administrator | `admin@mit.ac.in` or `ADMIN001` | `admin123` | Highest privileges; manages instructors |
 | **Instructor** | Prof. Rahul Sharma | `rahul@mit.ac.in` or `INS001` | `password123` | Teaches `CSE DSA 2026` (Code: `DSA-CSE-A26`) |
 | **Instructor** | Dr. Sunita Rao | `sunita@miet.ac.in` or `INS002` | `password123` | Teaches `IT DSA 2026` (Code: `DSA-IT-A26`) |
-| **Student** | Nikhil Sharma | `nikhil@mit.ac.in` | Google One-Click | Enrolled in CSE DSA 2026; high solve count |
-| **Student** | Aman Gupta | `aman@mit.ac.in` | Google One-Click | Enrolled in CSE DSA 2026 |
-| **Student** | Priya Patel | `priya@miet.ac.in` | Google One-Click | Enrolled in CSE DSA 2026 |
-| **Student (New Setup)** | Kavya Nair | `kavya@mit.ac.in` | Google One-Click | Simulates first-time `/student/profile/setup` |
+| **Student** | Nikhil Sharma | `nikhil@mit.ac.in` | Register a password | Enrolled in CSE DSA 2026; high solve count |
+| **Student** | Aman Gupta | `aman@mit.ac.in` | Register a password | Enrolled in CSE DSA 2026 |
+| **Student** | Priya Patel | `priya@miet.ac.in` | Register a password | Enrolled in CSE DSA 2026 |
+| **Student (New Setup)** | Kavya Nair | `kavya@mit.ac.in` | Register a password | Simulates first-time `/student/profile/setup` |
 
 ---
 

@@ -40,8 +40,10 @@ export function DifficultyDonutChart({ easy = 0, medium = 0, hard = 0 }) {
               backgroundColor: '#0f172a',
               border: '1px solid #334155',
               borderRadius: '8px',
-              color: '#f8fafc',
+              color: '#ffffff',
             }}
+            labelStyle={{ color: '#ffffff' }}
+            itemStyle={{ color: '#ffffff' }}
           />
           <Pie
             data={data}
@@ -83,8 +85,10 @@ export function AssignmentStatusBarChart({ completed = 0, pending = 0, late = 0 
               backgroundColor: '#0f172a',
               border: '1px solid #334155',
               borderRadius: '8px',
-              color: '#f8fafc',
+              color: '#ffffff',
             }}
+            labelStyle={{ color: '#ffffff' }}
+            itemStyle={{ color: '#ffffff' }}
           />
           <Bar dataKey="count" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (

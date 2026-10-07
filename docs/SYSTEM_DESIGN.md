@@ -130,9 +130,9 @@ graph TB
 
 ## 4. Security Architecture
 
-### 4.1 Student Google OAuth & Domain Restriction
-1. When students click **Continue with Google**, their identity is verified.
-2. The authentication handler strictly inspects the email domain suffix:
+### 4.1 Supabase Authentication & Student Domain Restriction
+1. Supabase Auth verifies email/password credentials for students, instructors, and administrators.
+2. Student registration and sign-in strictly inspect the email domain suffix:
    ```javascript
    const allowedDomains = ['@mit.ac.in', '@miet.ac.in'];
    const isAllowed = allowedDomains.some((d) => email.toLowerCase().endsWith(d));
@@ -140,7 +140,7 @@ graph TB
      return errorResponse('Access Restricted: Please login using your official @mit.ac.in or @miet.ac.in account.', 403);
    }
    ```
-3. Any personal email (`@gmail.com`, `@yahoo.com`) is immediately rejected with a user-friendly error.
+3. Any personal email (`@gmail.com`, `@yahoo.com`) is immediately rejected with a user-friendly Toastify error.
 4. If a new student's profile is missing required fields (Roll Number, Branch, LeetCode handle), the system flags `isProfileComplete: false` and routes them to `/student/profile/setup`.
 
 ### 4.2 Instructor & Super Admin Password Hashing

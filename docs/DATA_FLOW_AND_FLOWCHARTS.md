@@ -72,25 +72,28 @@ sequenceDiagram
 
 ---
 
-## 3. Student Domain-Enforced OAuth & Profile Setup Flow
+## 3. Student Supabase Authentication & Profile Setup Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Student as Student
     participant UI as /student/login
-    participant API as /api/auth/google
+    participant API as /api/auth/register or /api/auth/login
     participant DB as MongoDB (User Collection)
+    participant Supabase as Supabase Auth
 
-    Student->>UI: Clicks "Continue with Google"
-    UI->>API: POST /api/auth/google with email & googleId
-    API->>API: Validate email.endsWith('@mit.ac.in') or ('@miet.ac.in')
+    Student->>UI: Enters college email and password
+    UI->>API: POST registration or login request
+    API->>API: Validate institutional email domain
     alt Invalid Email Domain
         API-->>UI: 403 Forbidden: "Access Restricted: Institutional account required"
-        UI-->>Student: Display Access Restricted Banner
+        UI-->>Student: Show error toast
     else Valid College Domain
-        API->>DB: Find or create student document
-        API->>API: Generate JWT session token
+        API->>Supabase: Register or verify email/password
+        Supabase-->>API: Authenticated Supabase user
+        API->>DB: Find or create/link student profile
+        API->>API: Generate app session token
         API-->>UI: Set HttpOnly Cookie (dsatrack_token) + user status
         alt Profile Incomplete (missing roll, branch, or handles)
             UI->>Student: Redirect to /student/profile/setup

@@ -22,6 +22,7 @@ import {
   GraduationCap,
   Sparkles,
   Trophy,
+  BookOpen,
 } from 'lucide-react';
 
 export default function StudentAnalyticsPage() {

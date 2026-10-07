@@ -1,15 +1,39 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 const AuthContext = createContext(null);
+
+async function postAuthRequest(path, payload, fallbackMessage) {
+  let response;
+  try {
+    response = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    throw new Error('Cannot reach the DSATrack server. Make sure npm run dev is running, then retry.');
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error('The DSATrack server returned an invalid response. Check its terminal for errors.');
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || fallbackMessage);
+  }
+  return data;
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
 
   const fetchCurrentUser = useCallback(async () => {
     try {
@@ -37,20 +61,10 @@ export function AuthProvider({ children }) {
   }, [fetchCurrentUser]);
 
   const login = async (identifier, password, role) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password, role }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Login failed');
-    }
+    const data = await postAuthRequest('/api/auth/login', { identifier, password, role }, 'Login failed');
 
     setUser(data.user);
 
-    // Redirect based on role
     if (data.user.role === 'SUPER_ADMIN') {
       router.push('/admin/dashboard');
     } else if (data.user.role === 'INSTRUCTOR') {
@@ -65,24 +79,24 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const googleLogin = async ({ email, name, googleId }) => {
-    const res = await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name, googleId }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Google authentication failed');
-    }
+  const registerSuperAdmin = async ({ name, email, password, registrationKey }) => {
+    const data = await postAuthRequest(
+      '/api/auth/register-super-admin',
+      { name, email, password, registrationKey },
+      'Super Admin registration failed'
+    );
 
     setUser(data.user);
+    router.push('/admin/dashboard');
+    return data;
+  };
 
-    if (!data.user.isProfileComplete) {
-      router.push('/student/profile/setup');
-    } else {
-      router.push('/student/dashboard');
+  const register = async ({ name, email, password }) => {
+    const data = await postAuthRequest('/api/auth/register', { name, email, password }, 'Registration failed');
+
+    if (data.user) {
+      setUser(data.user);
+      router.push(data.user.isProfileComplete ? '/student/dashboard' : '/student/profile/setup');
     }
     return data;
   };
@@ -107,7 +121,8 @@ export function AuthProvider({ children }) {
         user,
         loading,
         login,
-        googleLogin,
+        registerSuperAdmin,
+        register,
         logout,
         refreshUser,
       }}

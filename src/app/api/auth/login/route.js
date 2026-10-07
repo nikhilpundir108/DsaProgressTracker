@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/lib/models/User';
-import { signToken } from '@/lib/auth';
+import { isAllowedStudentEmail } from '@/lib/auth';
+import { createAuthSessionResponse } from '@/lib/authSession';
+import {
+  createSupabaseAdminClient,
+  createSupabaseAuthClient,
+  getSupabaseUnavailableMessage,
+  isSupabaseFetchFailure,
+} from '@/lib/supabase';
 
 export async function POST(req) {
   try {
@@ -14,23 +21,22 @@ export async function POST(req) {
 
     const cleanIdentifier = identifier.trim();
 
-    // Query user by email OR instructorId
     const query = {
       $or: [
         { email: cleanIdentifier.toLowerCase() },
         { instructorId: cleanIdentifier.toUpperCase() },
-        { instructorId: cleanIdentifier },
       ],
     };
 
-    if (role) {
-      query.role = role;
+    if (role && !['SUPER_ADMIN', 'INSTRUCTOR', 'STUDENT'].includes(role)) {
+      return NextResponse.json({ error: 'Invalid account role' }, { status: 400 });
     }
+    if (role) query.role = role;
 
     const user = await User.findOne(query).select('+password');
 
     if (!user) {
-      return NextResponse.json({ error: 'Invalid credentials. User not found.' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid email/ID or password' }, { status: 401 });
     }
 
     if (!user.isActive) {
@@ -40,40 +46,44 @@ export async function POST(req) {
       );
     }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return NextResponse.json({ error: 'Invalid password. Please try again.' }, { status: 401 });
+    if (user.role === 'STUDENT' && !isAllowedStudentEmail(user.email)) {
+      return NextResponse.json({ error: 'Use your official @mit.ac.in or @miet.ac.in email address' }, { status: 403 });
     }
 
-    const token = signToken({
-      id: user._id,
+    const supabase = createSupabaseAuthClient();
+    let { data, error } = await supabase.auth.signInWithPassword({
       email: user.email,
-      role: user.role,
-      instructorId: user.instructorId,
+      password,
     });
 
-    const userObj = user.toObject();
-    delete userObj.password;
+    if (error && !user.supabaseId && user.password && (await user.comparePassword(password))) {
+      const { data: created, error: createError } = await createSupabaseAdminClient().auth.admin.createUser({
+        email: user.email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: user.name },
+      });
 
-    const response = NextResponse.json({
-      success: true,
-      message: 'Login successful',
-      token,
-      user: userObj,
-    });
+      if (!createError && created.user) {
+        data = { user: created.user };
+        error = null;
+      }
+    }
 
-    // Set secure HTTP-only cookie
-    response.cookies.set('dsatrack_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
+    if (error || !data.user) {
+      return NextResponse.json({ error: 'Invalid email/ID or password' }, { status: 401 });
+    }
 
-    return response;
+    user.supabaseId = data.user.id;
+    user.password = undefined;
+    await user.save();
+
+    return createAuthSessionResponse(user);
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: 'Server error during login: ' + error.message }, { status: 500 });
+    if (isSupabaseFetchFailure(error)) {
+      return NextResponse.json({ error: getSupabaseUnavailableMessage() }, { status: 503 });
+    }
+    return NextResponse.json({ error: 'Authentication service is unavailable. Please try again.' }, { status: 500 });
   }
 }

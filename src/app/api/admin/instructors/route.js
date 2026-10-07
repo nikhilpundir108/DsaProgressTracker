@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db';
 import User from '@/lib/models/User';
 import Batch from '@/lib/models/Batch';
 import { getUserFromRequest, generateInstructorId } from '@/lib/auth';
+import { createSupabaseAdminClient } from '@/lib/supabase';
 
 // GET all instructors with their batch counts
 export async function GET(req) {
@@ -78,17 +79,33 @@ export async function POST(req) {
     // Generate unique Instructor ID e.g. INS001
     const instructorId = await generateInstructorId();
 
-    const newInstructor = await User.create({
-      name: name.trim(),
+    const { data: authData, error: authError } = await createSupabaseAdminClient().auth.admin.createUser({
       email: cleanEmail,
-      password, // Password will be hashed by UserSchema.pre('save')
-      role: 'INSTRUCTOR',
-      instructorId,
-      phone: phone?.trim() || '',
-      department: department?.trim() || 'Computer Science',
-      isActive: true,
-      isProfileComplete: true,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: name.trim() },
     });
+    if (authError || !authData.user) {
+      return NextResponse.json({ error: authError?.message || 'Could not create instructor authentication' }, { status: 400 });
+    }
+
+    let newInstructor;
+    try {
+      newInstructor = await User.create({
+        name: name.trim(),
+        email: cleanEmail,
+        supabaseId: authData.user.id,
+        role: 'INSTRUCTOR',
+        instructorId,
+        phone: phone?.trim() || '',
+        department: department?.trim() || 'Computer Science',
+        isActive: true,
+        isProfileComplete: true,
+      });
+    } catch (error) {
+      await createSupabaseAdminClient().auth.admin.deleteUser(authData.user.id);
+      throw error;
+    }
 
     const instructorObj = newInstructor.toObject();
     delete instructorObj.password;

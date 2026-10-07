@@ -68,35 +68,30 @@ Authenticates a Super Admin or Instructor using Identifier (Email or Instructor 
 
 ---
 
-### 1.2 `POST /api/auth/google`
-Authenticates a student via Google OAuth. Enforces institutional domain restriction (`@mit.ac.in` or `@miet.ac.in`).
+### 1.2 `POST /api/auth/register`
+Registers a student with Supabase Auth and creates or links their MongoDB student profile. Registration is limited to `@mit.ac.in` and `@miet.ac.in` addresses.
 
 * **Access**: Public
 * **Request Body**:
 ```json
 {
-  "email": "nikhil@mit.ac.in",
   "name": "Nikhil Sharma",
-  "googleId": "google_oauth_1234567890",
-  "avatar": "https://lh3.googleusercontent.com/..."
+  "email": "nikhil@mit.ac.in",
+  "password": "at-least-8-characters"
 }
 ```
-* **Success Response (200 OK)**:
+* **Success Response (200 OK)**: An app session is issued when Supabase returns an active session. If email confirmation is enabled, the response asks the student to confirm their address before signing in.
 ```json
 {
   "success": true,
-  "user": {
-    "id": "66fb10b248a31e8c0b291a22",
-    "name": "Nikhil Sharma",
-    "email": "nikhil@mit.ac.in",
-    "role": "STUDENT",
-    "isProfileComplete": true,
-    "collegeRollNo": "2022CSE042"
-  }
+  "requiresEmailConfirmation": true,
+  "message": "Check your email to confirm your account, then sign in."
 }
 ```
 * **Error Responses**:
+  * `400 Bad Request`: Invalid input or Supabase rejected the registration.
   * `403 Forbidden`: Email domain is not `@mit.ac.in` or `@miet.ac.in`.
+  * `409 Conflict`: An account already exists.
 
 ---
 

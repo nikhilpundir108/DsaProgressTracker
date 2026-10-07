@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
+import { toast } from 'react-toastify';
 import {
   Users,
   Lock,
@@ -12,7 +13,6 @@ import {
   Code2,
   KeyRound,
   Sparkles,
-  AlertCircle,
 } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 
@@ -24,7 +24,6 @@ export default function InstructorLoginPage() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
 
   const demoInstructors = [
@@ -35,13 +34,12 @@ export default function InstructorLoginPage() {
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
       await login(identifier, password, 'INSTRUCTOR');
     } catch (err) {
-      setError(err.message || 'Invalid Instructor credentials');
+      toast.error(err.message || 'Invalid Instructor credentials');
     } finally {
       setLoading(false);
     }
@@ -50,7 +48,6 @@ export default function InstructorLoginPage() {
   const handleQuickFill = (insId, pass) => {
     setIdentifier(insId);
     setPassword(pass);
-    setError('');
   };
 
   return (
@@ -79,13 +76,6 @@ export default function InstructorLoginPage() {
             Sign in with your Instructor ID (e.g. <span className="font-mono text-indigo-300">INS001</span>) or Email
           </p>
         </div>
-
-        {error && (
-          <div className="mb-5 p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -182,7 +172,7 @@ export default function InstructorLoginPage() {
 
       <div className="mt-6 flex items-center gap-4 text-xs text-slate-500">
         <Link href="/student/login" className="hover:text-slate-300 transition">
-          Student Google Login →
+          Student Portal →
         </Link>
         <span>•</span>
         <Link href="/admin/login" className="hover:text-slate-300 transition">

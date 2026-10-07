@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
+import { toast } from 'react-toastify';
 import {
   ShieldCheck,
   Lock,
@@ -11,29 +11,25 @@ import {
   ArrowRight,
   Code2,
   Sparkles,
-  AlertCircle,
 } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 
 export default function SuperAdminLoginPage() {
-  const router = useRouter();
   const { login } = useAuth();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
       await login(identifier, password, 'SUPER_ADMIN');
     } catch (err) {
-      setError(err.message || 'Invalid Super Admin credentials');
+      toast.error(err.message || 'Invalid Super Admin credentials');
     } finally {
       setLoading(false);
     }
@@ -42,7 +38,6 @@ export default function SuperAdminLoginPage() {
   const handleQuickFill = () => {
     setIdentifier('admin@mit.ac.in');
     setPassword('admin123');
-    setError('');
   };
 
   return (
@@ -72,13 +67,6 @@ export default function SuperAdminLoginPage() {
           </p>
         </div>
 
-        {error && (
-          <div className="mb-5 p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
@@ -88,6 +76,7 @@ export default function SuperAdminLoginPage() {
               <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
               <input
                 type="text"
+                autoComplete="email"
                 required
                 placeholder="admin@mit.ac.in or ADMIN001"
                 value={identifier}
@@ -112,6 +101,7 @@ export default function SuperAdminLoginPage() {
               <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
               <input
                 type="password"
+                autoComplete="current-password"
                 required
                 placeholder="••••••••"
                 value={password}
@@ -153,11 +143,21 @@ export default function SuperAdminLoginPage() {
             <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition" />
           </button>
         </div>
+
+        <p className="mt-6 text-center text-sm text-slate-400">
+          Need an administrator account?{' '}
+          <Link
+            href="/admin/register"
+            className="font-semibold text-purple-300 hover:text-purple-200 transition"
+          >
+            Register
+          </Link>
+        </p>
       </div>
 
       <div className="mt-6 flex items-center gap-4 text-xs text-slate-500">
         <Link href="/student/login" className="hover:text-slate-300 transition">
-          Student Google Login →
+          Student Portal →
         </Link>
         <span>•</span>
         <Link href="/instructor/login" className="hover:text-slate-300 transition">

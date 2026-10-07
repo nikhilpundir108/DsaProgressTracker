@@ -29,6 +29,11 @@ const UserSchema = new mongoose.Schema(
       type: String,
       sparse: true,
     },
+    supabaseId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     instructorId: {
       type: String,
       unique: true,

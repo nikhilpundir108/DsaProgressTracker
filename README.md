@@ -31,6 +31,12 @@ MONGODB_URI=mongodb://127.0.0.1:27017/dsatrack
 # Authentication Secret
 JWT_SECRET=your_jwt_secret_key_here
 
+# Supabase Authentication
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+SUPABASE_SECRET_KEY=your_supabase_secret_key
+SUPER_ADMIN_REGISTRATION_KEY=replace_with_a_long_random_invitation_key
+
 # App URL
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -46,6 +52,12 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+Students can register with an `@mit.ac.in` or `@miet.ac.in` email from the Student Portal. Enable Supabase Auth email confirmation and allow the app's student login URL (for local development, `http://localhost:3000/student/login`) in the Supabase redirect URL settings. The Supabase secret key is used only by server routes and must never be exposed to the browser.
+
+Existing MongoDB users with a stored password are migrated to Supabase on their first successful sign-in. Instructor accounts remain provisioned by an administrator; Super Admin registration requires the invitation key described below.
+
+Super Admin registration is available from the admin login form but requires `SUPER_ADMIN_REGISTRATION_KEY` in the server environment. Keep this invitation key private and share it only with trusted administrators.
 
 ---
 

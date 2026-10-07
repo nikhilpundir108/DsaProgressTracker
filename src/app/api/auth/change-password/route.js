@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import User from '@/lib/models/User';
 import { getUserFromRequest } from '@/lib/auth';
-import bcrypt from 'bcryptjs';
+import { createSupabaseAdminClient, createSupabaseAuthClient } from '@/lib/supabase';
 
 export async function POST(req) {
   try {
-    await dbConnect();
     const currentUser = await getUserFromRequest(req);
 
     if (!currentUser) {
@@ -15,30 +12,32 @@ export async function POST(req) {
 
     const { currentPassword, newPassword, confirmPassword } = await req.json();
 
-    if (!newPassword || newPassword.length < 6) {
-      return NextResponse.json({ error: 'New password must be at least 6 characters long' }, { status: 400 });
+    if (!newPassword || newPassword.length < 8) {
+      return NextResponse.json({ error: 'New password must be at least 8 characters long' }, { status: 400 });
     }
 
     if (newPassword !== confirmPassword) {
       return NextResponse.json({ error: 'New password and confirm password do not match' }, { status: 400 });
     }
 
-    // Load user with password field
-    const user = await User.findById(currentUser._id).select('+password');
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    if (!currentUser.supabaseId || !currentPassword) {
+      return NextResponse.json({ error: 'Enter your current password before changing it' }, { status: 400 });
     }
 
-    // If student has no existing password or if changing existing password
-    if (user.password && currentPassword) {
-      const isMatch = await user.comparePassword(currentPassword);
-      if (!isMatch) {
-        return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 });
-      }
+    const { error: verifyError } = await createSupabaseAuthClient().auth.signInWithPassword({
+      email: currentUser.email,
+      password: currentPassword,
+    });
+    if (verifyError) {
+      return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 });
     }
 
-    user.password = newPassword;
-    await user.save();
+    const { error } = await createSupabaseAdminClient().auth.admin.updateUserById(currentUser.supabaseId, {
+      password: newPassword,
+    });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 
     return NextResponse.json({
       success: true,
