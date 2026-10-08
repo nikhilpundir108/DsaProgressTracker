@@ -12,7 +12,7 @@ import {
   Code2,
   Sparkles,
 } from 'lucide-react';
-import { Modal } from '@/components/Modal';
+import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
 export default function SuperAdminLoginPage() {
   const { login } = useAuth();
@@ -165,33 +165,11 @@ export default function SuperAdminLoginPage() {
         </Link>
       </div>
 
-      {/* Forgot Password Modal */}
-      <Modal
+      <ForgotPasswordModal
         isOpen={forgotModalOpen}
         onClose={() => setForgotModalOpen(false)}
-        title="Super Admin Security"
-      >
-        <div className="space-y-3 py-2 text-sm text-slate-300">
-          <p>
-            The Super Administrator is the primary root account for the DSATrack instance.
-          </p>
-          <p className="text-xs text-slate-400">
-            For local testing and evaluation, default credentials are:
-            <br />
-            Email: <span className="text-purple-300 font-mono font-semibold">admin@mit.ac.in</span>
-            <br />
-            Password: <span className="text-purple-300 font-mono font-semibold">admin123</span>
-          </p>
-          <div className="pt-3 border-t border-slate-800 flex justify-end">
-            <button
-              onClick={() => setForgotModalOpen(false)}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </Modal>
+        initialEmail={identifier}
+      />
     </div>
   );
 }

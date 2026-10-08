@@ -13,13 +13,20 @@ export default function SuperAdminRegisterPage() {
   const [password, setPassword] = useState('');
   const [registrationKey, setRegistrationKey] = useState('');
   const [loading, setLoading] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
 
     try {
-      await registerSuperAdmin({ name, email, password, registrationKey });
+      const result = await registerSuperAdmin({ name, email, password, registrationKey });
+      if (result.requiresEmailConfirmation) {
+        setConfirmationEmail(email.trim());
+        setPassword('');
+        setRegistrationKey('');
+        toast.success(result.message);
+      }
     } catch (error) {
       toast.error(error.message || 'Super Admin registration failed');
     } finally {
@@ -52,6 +59,20 @@ export default function SuperAdminRegisterPage() {
           </p>
         </div>
 
+        {confirmationEmail ? (
+          <div className="space-y-4 text-center" role="status">
+            <div className="mx-auto w-12 h-12 rounded-xl bg-teal-500/15 text-teal-300 border border-teal-500/30 flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h2 className="text-lg font-bold text-white">Verify your email</h2>
+            <p className="text-sm text-slate-300">
+              We sent a verification link to <strong className="text-white">{confirmationEmail}</strong>. Confirm the address before signing in.
+            </p>
+            <Link href="/admin/login" className="inline-flex px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold transition">
+              Go to Admin Login
+            </Link>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="admin-name" className="block text-xs font-semibold text-slate-300 mb-1.5">
@@ -125,6 +146,7 @@ export default function SuperAdminRegisterPage() {
             {loading ? 'Creating account...' : 'Create Super Admin account'}
           </button>
         </form>
+        )}
 
         <p className="mt-6 text-center text-sm text-slate-400">
           Already have an account?{' '}

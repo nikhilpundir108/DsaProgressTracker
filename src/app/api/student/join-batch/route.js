@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db';
 import Batch from '@/lib/models/Batch';
 import BatchJoinRequest from '@/lib/models/BatchJoinRequest';
 import { getUserFromRequest } from '@/lib/auth';
+import { enforceRateLimit } from '@/lib/rateLimit';
 
 export async function POST(req) {
   try {
@@ -12,6 +13,14 @@ export async function POST(req) {
     if (!currentUser || currentUser.role !== 'STUDENT') {
       return NextResponse.json({ error: 'Only students can request to join batches' }, { status: 403 });
     }
+
+    const rateLimitResponse = await enforceRateLimit(req, {
+      namespace: 'student-join-batch-user',
+      key: currentUser._id.toString(),
+      limit: 10,
+      window: '1 h',
+    });
+    if (rateLimitResponse) return rateLimitResponse;
 
     const { code } = await req.json();
 

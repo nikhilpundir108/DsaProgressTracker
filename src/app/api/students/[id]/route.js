@@ -5,6 +5,7 @@ import Batch from '@/lib/models/Batch';
 import Assignment from '@/lib/models/Assignment';
 import Submission from '@/lib/models/Submission';
 import { getUserFromRequest } from '@/lib/auth';
+import { getInstructorBatchMatch } from '@/lib/batchAccess';
 
 export async function GET(req, { params }) {
   try {
@@ -39,7 +40,7 @@ export async function GET(req, { params }) {
 
     // If instructor is requesting, ensure student is in at least one of their batches
     if (currentUser.role === 'INSTRUCTOR') {
-      const instructorBatchIds = (await Batch.find({ instructorId: currentUser._id }).select('_id')).map((b) =>
+      const instructorBatchIds = (await Batch.find(getInstructorBatchMatch(currentUser._id)).select('_id')).map((b) =>
         b._id.toString()
       );
       const hasCommonBatch = batchIds.some((bId) => instructorBatchIds.includes(bId.toString()));

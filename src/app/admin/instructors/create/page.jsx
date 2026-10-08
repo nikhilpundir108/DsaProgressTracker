@@ -74,6 +74,7 @@ export default function CreateInstructorPage() {
       setCreatedResult({
         instructor: data.instructor,
         rawPassword: data.rawPassword,
+        requiresEmailConfirmation: data.requiresEmailConfirmation,
       });
     } catch (err) {
       setError(err.message || 'Error creating instructor');
@@ -121,12 +122,20 @@ export default function CreateInstructorPage() {
                   <CheckCircle2 className="w-7 h-7" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Instructor Created Successfully</h2>
+                  <h2 className="text-2xl font-bold text-white">
+                    {createdResult.requiresEmailConfirmation ? 'Instructor Created, Verification Pending' : 'Instructor Created Successfully'}
+                  </h2>
                   <p className="text-xs text-slate-400">
-                    A unique Instructor ID has been generated. Provide these credentials to the faculty member.
+                    A unique Instructor ID has been generated. The instructor must verify their email before signing in.
                   </p>
                 </div>
               </div>
+
+              {createdResult.requiresEmailConfirmation && (
+                <div className="mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-sm">
+                  A verification link was sent to {createdResult.instructor.email}. The account cannot sign in until the instructor confirms it.
+                </div>
+              )}
 
               {/* Formatted Credential Box */}
               <div className="mt-6 p-6 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 font-mono text-sm">

@@ -3,7 +3,7 @@ import dbConnect from '@/lib/db';
 import User from '@/lib/models/User';
 import Batch from '@/lib/models/Batch';
 import { getUserFromRequest, generateInstructorId } from '@/lib/auth';
-import { createSupabaseAdminClient } from '@/lib/supabase';
+import { createSupabaseAdminClient, createSupabaseAuthClient } from '@/lib/supabase';
 
 // GET all instructors with their batch counts
 export async function GET(req) {
@@ -79,14 +79,27 @@ export async function POST(req) {
     // Generate unique Instructor ID e.g. INS001
     const instructorId = await generateInstructorId();
 
-    const { data: authData, error: authError } = await createSupabaseAdminClient().auth.admin.createUser({
+    const { data: authData, error: authError } = await createSupabaseAuthClient().auth.signUp({
       email: cleanEmail,
       password,
-      email_confirm: true,
-      user_metadata: { full_name: name.trim() },
+      options: {
+        data: { full_name: name.trim() },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/instructor/login`,
+      },
     });
     if (authError || !authData.user) {
       return NextResponse.json({ error: authError?.message || 'Could not create instructor authentication' }, { status: 400 });
+    }
+    if (authData.user.identities?.length === 0) {
+      return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 });
+    }
+    if (authData.session) {
+      const { error: cleanupError } = await createSupabaseAdminClient().auth.admin.deleteUser(authData.user.id);
+      if (cleanupError) console.error('Could not remove unverified instructor account:', cleanupError);
+      return NextResponse.json(
+        { error: 'Email confirmation is disabled in Supabase. Enable it before creating instructors.' },
+        { status: 503 }
+      );
     }
 
     let newInstructor;
@@ -112,7 +125,8 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: 'Instructor created successfully',
+      requiresEmailConfirmation: true,
+      message: 'Instructor created. A verification email has been sent to the instructor.',
       instructor: instructorObj,
       rawPassword: password, // For one-time display to Super Admin as per spec
     });

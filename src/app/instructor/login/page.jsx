@@ -14,7 +14,7 @@ import {
   KeyRound,
   Sparkles,
 } from 'lucide-react';
-import { Modal } from '@/components/Modal';
+import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
 export default function InstructorLoginPage() {
   const router = useRouter();
@@ -180,29 +180,11 @@ export default function InstructorLoginPage() {
         </Link>
       </div>
 
-      {/* Forgot Password Modal */}
-      <Modal
+      <ForgotPasswordModal
         isOpen={forgotModalOpen}
         onClose={() => setForgotModalOpen(false)}
-        title="Instructor Password Assistance"
-      >
-        <div className="space-y-3 py-2 text-sm text-slate-300">
-          <p>
-            Instructor credentials and initial passwords are created and managed by the <span className="text-white font-semibold">Super Admin</span>.
-          </p>
-          <p className="text-xs text-slate-400">
-            If you have forgotten your password or need a credential reset, please contact your college Super Administrator or use the default demo password: <span className="text-indigo-300 font-mono font-bold">password123</span>.
-          </p>
-          <div className="pt-3 border-t border-slate-800 flex justify-end">
-            <button
-              onClick={() => setForgotModalOpen(false)}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </Modal>
+        initialEmail={identifier}
+      />
     </div>
   );
 }

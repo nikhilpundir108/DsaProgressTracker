@@ -124,6 +124,13 @@ export default function InstructorDashboard() {
 
               <div className="flex items-center gap-3">
                 <Link
+                  href="/instructor/join-batch"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold text-sm border border-slate-700 transition self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Join Batch</span>
+                </Link>
+                <Link
                   href="/instructor/batches/create"
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-lg shadow-brand-500/20 transition self-start sm:self-auto"
                 >

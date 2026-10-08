@@ -5,6 +5,7 @@ import User from '@/lib/models/User';
 import Assignment from '@/lib/models/Assignment';
 import BatchJoinRequest from '@/lib/models/BatchJoinRequest';
 import { getUserFromRequest } from '@/lib/auth';
+import { isBatchInstructor } from '@/lib/batchAccess';
 
 // GET batch by ID
 export async function GET(req, { params }) {
@@ -27,7 +28,7 @@ export async function GET(req, { params }) {
 
     // Role check
     if (currentUser.role === 'INSTRUCTOR') {
-      if (batch.instructorId._id.toString() !== currentUser._id.toString()) {
+      if (!isBatchInstructor(batch, currentUser._id)) {
         return NextResponse.json({ error: 'You do not have permission to view this batch' }, { status: 403 });
       }
     } else if (currentUser.role === 'STUDENT') {
@@ -75,7 +76,7 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
     }
 
-    if (currentUser.role === 'INSTRUCTOR' && batch.instructorId.toString() !== currentUser._id.toString()) {
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
       return NextResponse.json({ error: 'You cannot edit another instructor batch' }, { status: 403 });
     }
 
@@ -115,7 +116,7 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
     }
 
-    if (currentUser.role === 'INSTRUCTOR' && batch.instructorId.toString() !== currentUser._id.toString()) {
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

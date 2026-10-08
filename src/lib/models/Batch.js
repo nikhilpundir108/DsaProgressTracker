@@ -38,6 +38,12 @@ const BatchSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    instructorIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     students: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -53,5 +59,9 @@ const BatchSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+if (mongoose.models.Batch && !mongoose.models.Batch.schema.path('instructorIds')) {
+  mongoose.deleteModel('Batch');
+}
 
 export default mongoose.models.Batch || mongoose.model('Batch', BatchSchema);

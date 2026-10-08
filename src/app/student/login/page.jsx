@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthContext';
+import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 import { toast } from 'react-toastify';
 import { ArrowRight, Code2, GraduationCap } from 'lucide-react';
 
@@ -13,6 +14,7 @@ export default function StudentLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotModalOpen, setForgotModalOpen] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -99,9 +101,18 @@ export default function StudentLoginPage() {
           </div>
 
           <div>
-            <label htmlFor="student-password" className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label htmlFor="student-password" className="block text-xs font-semibold text-slate-300">Password</label>
+              {!isRegistering && (
+                <button
+                  type="button"
+                  onClick={() => setForgotModalOpen(true)}
+                  className="text-xs font-medium text-teal-300 hover:text-teal-200"
+                >
+                  Forgot password?
+                </button>
+              )}
+            </div>
             <input
               id="student-password"
               type="password"
@@ -142,6 +153,12 @@ export default function StudentLoginPage() {
         <span aria-hidden="true">•</span>
         <Link href="/admin/login" className="hover:text-slate-300 transition">Super Admin Login</Link>
       </div>
+
+      <ForgotPasswordModal
+        isOpen={forgotModalOpen}
+        onClose={() => setForgotModalOpen(false)}
+        initialEmail={email}
+      />
     </main>
   );
 }

@@ -4,12 +4,30 @@ import User from '@/lib/models/User';
 import { isAllowedStudentEmail } from '@/lib/auth';
 import { createAuthSessionResponse } from '@/lib/authSession';
 import { createSupabaseAuthClient, getSupabaseUnavailableMessage, isSupabaseFetchFailure } from '@/lib/supabase';
+import { enforceRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(req) {
   try {
+    const ip = getClientIp(req);
+    const ipLimit = await enforceRateLimit(req, {
+      namespace: 'register-ip',
+      key: ip,
+      limit: 5,
+      window: '1 h',
+    });
+    if (ipLimit) return ipLimit;
+
     const { name, email, password } = await req.json();
     const cleanName = typeof name === 'string' ? name.trim() : '';
     const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+
+    const emailLimit = await enforceRateLimit(req, {
+      namespace: 'register-email',
+      key: `${ip}:${cleanEmail || 'missing'}`,
+      limit: 3,
+      window: '1 h',
+    });
+    if (emailLimit) return emailLimit;
 
     if (!cleanName || !cleanEmail || typeof password !== 'string') {
       return NextResponse.json({ error: 'Name, email, and password are required' }, { status: 400 });

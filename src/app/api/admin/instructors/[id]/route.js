@@ -3,7 +3,7 @@ import dbConnect from '@/lib/db';
 import User from '@/lib/models/User';
 import Batch from '@/lib/models/Batch';
 import { getUserFromRequest } from '@/lib/auth';
-import { createSupabaseAdminClient } from '@/lib/supabase';
+import { createSupabaseAdminClient, createSupabaseAuthClient } from '@/lib/supabase';
 
 // GET instructor details with their batches
 export async function GET(req, { params }) {
@@ -73,15 +73,10 @@ export async function PUT(req, { params }) {
     if (body.phone !== undefined) instructor.phone = body.phone.trim();
     if (body.department !== undefined) instructor.department = body.department.trim();
     if (body.email && body.email.toLowerCase().trim() !== instructor.email) {
-      const existing = await User.findOne({ email: body.email.toLowerCase().trim() });
-      if (existing) {
-        return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
-      }
-      instructor.email = body.email.toLowerCase().trim();
-      if (instructor.supabaseId) {
-        authAttributes.email = instructor.email;
-        authAttributes.email_confirm = true;
-      }
+      return NextResponse.json(
+        { error: 'Instructor email changes require a separate verification flow and cannot be changed here.' },
+        { status: 400 }
+      );
     }
 
     // Password reset by Super Admin
@@ -92,6 +87,49 @@ export async function PUT(req, { params }) {
       authAttributes.password = body.newPassword;
     }
 
+    if (!instructor.supabaseId && body.newPassword) {
+      const { data, error } = await createSupabaseAuthClient().auth.signUp({
+        email: instructor.email,
+        password: body.newPassword,
+        options: {
+          data: { full_name: instructor.name },
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/instructor/login`,
+        },
+      });
+      if (error || !data.user) {
+        return NextResponse.json({ error: error?.message || 'Could not create instructor authentication' }, { status: 400 });
+      }
+      if (data.user.identities?.length === 0) {
+        return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 });
+      }
+      if (data.session) {
+        const { error: cleanupError } = await createSupabaseAdminClient().auth.admin.deleteUser(data.user.id);
+        if (cleanupError) console.error('Could not remove unverified instructor account:', cleanupError);
+        return NextResponse.json(
+          { error: 'Email confirmation is disabled in Supabase. Enable it before resetting instructor credentials.' },
+          { status: 503 }
+        );
+      }
+
+      instructor.supabaseId = data.user.id;
+      instructor.password = undefined;
+      try {
+        await instructor.save();
+      } catch (saveError) {
+        await createSupabaseAdminClient().auth.admin.deleteUser(data.user.id);
+        throw saveError;
+      }
+
+      const updatedObj = instructor.toObject();
+      delete updatedObj.password;
+      return NextResponse.json({
+        success: true,
+        requiresEmailConfirmation: true,
+        message: 'Instructor authentication created. Verify the instructor email before signing in.',
+        instructor: updatedObj,
+      });
+    }
+
     if (Object.keys(authAttributes).length > 0) {
       const supabaseAdmin = createSupabaseAdminClient();
       if (instructor.supabaseId) {
@@ -99,17 +137,6 @@ export async function PUT(req, { params }) {
         if (error) {
           return NextResponse.json({ error: error.message }, { status: 400 });
         }
-      } else if (body.newPassword) {
-        const { data, error } = await supabaseAdmin.auth.admin.createUser({
-          email: instructor.email,
-          password: body.newPassword,
-          email_confirm: true,
-          user_metadata: { full_name: instructor.name },
-        });
-        if (error || !data.user) {
-          return NextResponse.json({ error: error?.message || 'Could not create instructor authentication' }, { status: 400 });
-        }
-        instructor.supabaseId = data.user.id;
       }
     }
 

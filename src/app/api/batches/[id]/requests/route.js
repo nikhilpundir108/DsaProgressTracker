@@ -4,6 +4,7 @@ import Batch from '@/lib/models/Batch';
 import BatchJoinRequest from '@/lib/models/BatchJoinRequest';
 import User from '@/lib/models/User';
 import { getUserFromRequest } from '@/lib/auth';
+import { isBatchInstructor } from '@/lib/batchAccess';
 
 // GET pending join requests for batch
 export async function GET(req, { params }) {
@@ -20,7 +21,7 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
     }
 
-    if (currentUser.role === 'INSTRUCTOR' && batch.instructorId.toString() !== currentUser._id.toString()) {
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -54,7 +55,7 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
     }
 
-    if (currentUser.role === 'INSTRUCTOR' && batch.instructorId.toString() !== currentUser._id.toString()) {
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

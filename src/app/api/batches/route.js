@@ -4,6 +4,7 @@ import Batch from '@/lib/models/Batch';
 import Assignment from '@/lib/models/Assignment';
 import BatchJoinRequest from '@/lib/models/BatchJoinRequest';
 import { getUserFromRequest, generateBatchCode } from '@/lib/auth';
+import { getInstructorBatchMatch } from '@/lib/batchAccess';
 
 // GET batches based on user role
 export async function GET(req) {
@@ -18,7 +19,7 @@ export async function GET(req) {
     let filter = { isArchived: { $ne: true } };
 
     if (currentUser.role === 'INSTRUCTOR') {
-      filter.instructorId = currentUser._id;
+      filter.$or = getInstructorBatchMatch(currentUser._id).$or;
     } else if (currentUser.role === 'STUDENT') {
       filter.students = currentUser._id;
     } else if (currentUser.role !== 'SUPER_ADMIN') {
@@ -106,6 +107,7 @@ export async function POST(req) {
       academicYear: String(academicYear).trim(),
       description: description?.trim() || '',
       instructorId: currentUser._id,
+      instructorIds: [currentUser._id],
       students: [],
     });
 

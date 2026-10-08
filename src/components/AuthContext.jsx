@@ -86,8 +86,10 @@ export function AuthProvider({ children }) {
       'Super Admin registration failed'
     );
 
-    setUser(data.user);
-    router.push('/admin/dashboard');
+    if (data.user) {
+      setUser(data.user);
+      router.push('/admin/dashboard');
+    }
     return data;
   };
 

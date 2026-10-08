@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { fetchLeetCodeData } from '@/lib/platforms/leetcode';
 import { fetchGFGData } from '@/lib/platforms/gfg';
 import { getUserFromRequest } from '@/lib/auth';
+import { enforceRateLimit } from '@/lib/rateLimit';
 
 export async function POST(req) {
   try {
@@ -9,6 +10,14 @@ export async function POST(req) {
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const rateLimitResponse = await enforceRateLimit(req, {
+      namespace: 'verify-handle-user',
+      key: currentUser._id.toString(),
+      limit: 10,
+      window: '10 m',
+    });
+    if (rateLimitResponse) return rateLimitResponse;
 
     const { platform, handle } = await req.json();
 

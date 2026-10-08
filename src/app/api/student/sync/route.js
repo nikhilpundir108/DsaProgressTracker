@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 import { syncStudentData, syncBatchData } from '@/lib/platforms/sync';
+import { enforceRateLimit } from '@/lib/rateLimit';
 
 export async function POST(req) {
   try {
@@ -11,6 +12,14 @@ export async function POST(req) {
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const rateLimitResponse = await enforceRateLimit(req, {
+      namespace: 'platform-sync-user',
+      key: currentUser._id.toString(),
+      limit: 10,
+      window: '5 m',
+    });
+    if (rateLimitResponse) return rateLimitResponse;
 
     let targetStudentId = currentUser._id;
     const body = await req.json().catch(() => ({}));

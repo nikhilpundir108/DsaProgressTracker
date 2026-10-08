@@ -5,6 +5,7 @@ import User from '@/lib/models/User';
 import Assignment from '@/lib/models/Assignment';
 import Submission from '@/lib/models/Submission';
 import { getUserFromRequest } from '@/lib/auth';
+import { isBatchInstructor } from '@/lib/batchAccess';
 
 // GET students in batch with detailed stats
 export async function GET(req, { params }) {
@@ -21,7 +22,7 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
     }
 
-    if (currentUser.role === 'INSTRUCTOR' && batch.instructorId.toString() !== currentUser._id.toString()) {
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -57,7 +58,7 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
     }
 
-    if (currentUser.role === 'INSTRUCTOR' && batch.instructorId.toString() !== currentUser._id.toString()) {
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

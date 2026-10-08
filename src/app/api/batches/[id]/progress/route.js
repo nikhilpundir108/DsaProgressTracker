@@ -5,6 +5,7 @@ import User from '@/lib/models/User';
 import Assignment from '@/lib/models/Assignment';
 import Submission from '@/lib/models/Submission';
 import { getUserFromRequest } from '@/lib/auth';
+import { isBatchInstructor } from '@/lib/batchAccess';
 
 export async function GET(req, { params }) {
   try {
@@ -21,7 +22,7 @@ export async function GET(req, { params }) {
     }
 
     // Role check
-    if (currentUser.role === 'INSTRUCTOR' && batch.instructorId.toString() !== currentUser._id.toString()) {
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

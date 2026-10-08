@@ -42,6 +42,7 @@ export function Sidebar() {
     links = [
       { name: 'Dashboard', href: '/instructor/dashboard', icon: LayoutDashboard },
       { name: 'Batches', href: '/instructor/batches', icon: Layers },
+      { name: 'Join Batch', href: '/instructor/join-batch', icon: Users },
       { name: 'Assignments', href: '/instructor/assignments', icon: BookOpen },
       { name: 'Students', href: '/instructor/students', icon: Users },
       { name: 'Leaderboard', href: '/instructor/leaderboard', icon: Trophy },

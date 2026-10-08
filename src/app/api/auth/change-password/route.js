@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth';
 import { createSupabaseAdminClient, createSupabaseAuthClient } from '@/lib/supabase';
+import { enforceRateLimit } from '@/lib/rateLimit';
 
 export async function POST(req) {
   try {
@@ -9,6 +10,14 @@ export async function POST(req) {
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const rateLimitResponse = await enforceRateLimit(req, {
+      namespace: 'change-password-user',
+      key: currentUser._id.toString(),
+      limit: 5,
+      window: '15 m',
+    });
+    if (rateLimitResponse) return rateLimitResponse;
 
     const { currentPassword, newPassword, confirmPassword } = await req.json();
 

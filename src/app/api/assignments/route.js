@@ -4,6 +4,7 @@ import Assignment from '@/lib/models/Assignment';
 import Batch from '@/lib/models/Batch';
 import Submission from '@/lib/models/Submission';
 import { getUserFromRequest } from '@/lib/auth';
+import { getInstructorBatchMatch, isBatchInstructor } from '@/lib/batchAccess';
 
 // Helper to extract clean slug from LeetCode / GFG url or title
 function extractSlug(title, url, platform) {
@@ -44,7 +45,9 @@ export async function GET(req) {
     let filter = {};
 
     if (currentUser.role === 'INSTRUCTOR') {
-      filter.instructorId = currentUser._id;
+      const batches = await Batch.find(getInstructorBatchMatch(currentUser._id)).select('_id');
+      const batchIds = batches.map((b) => b._id);
+      filter.batchId = { $in: batchIds };
     } else if (currentUser.role === 'STUDENT') {
       // Find batches student is enrolled in
       const batches = await Batch.find({ students: currentUser._id, isArchived: { $ne: true } }).select('_id');
@@ -126,7 +129,7 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
     }
 
-    if (currentUser.role === 'INSTRUCTOR' && batch.instructorId.toString() !== currentUser._id.toString()) {
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
       return NextResponse.json({ error: 'You can only assign to your own batches' }, { status: 403 });
     }
 

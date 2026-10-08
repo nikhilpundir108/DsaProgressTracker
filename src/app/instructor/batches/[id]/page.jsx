@@ -47,6 +47,7 @@ function BatchHubContent() {
   const [activeTab, setActiveTab] = useState(tabQuery);
 
   const [batch, setBatch] = useState(null);
+  const [batchError, setBatchError] = useState('');
   const [progressData, setProgressData] = useState(null);
   const [leaderboardData, setLeaderboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -74,6 +75,7 @@ function BatchHubContent() {
 
   const loadBatchDetails = async () => {
     setLoading(true);
+    setBatchError('');
     try {
       const [bRes, pRes, lRes] = await Promise.all([
         fetch(`/api/batches/${params.id}`),
@@ -84,6 +86,9 @@ function BatchHubContent() {
       if (bRes.ok) {
         const bData = await bRes.json();
         setBatch(bData.batch);
+      } else {
+        const bData = await bRes.json();
+        setBatchError(bData.error || 'Unable to load this batch.');
       }
       if (pRes.ok) {
         const pData = await pRes.json();
@@ -95,6 +100,7 @@ function BatchHubContent() {
       }
     } catch (e) {
       console.error(e);
+      setBatchError('Unable to load this batch. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -176,8 +182,20 @@ function BatchHubContent() {
 
   if (loading || !batch) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
-        Loading batch hub...
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 text-slate-400 text-sm">
+        {loading ? (
+          'Loading batch hub...'
+        ) : (
+          <>
+            <p className="text-rose-300">{batchError || 'Batch could not be loaded.'}</p>
+            <button
+              onClick={loadBatchDetails}
+              className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 transition"
+            >
+              Retry
+            </button>
+          </>
+        )}
       </div>
     );
   }
