@@ -5,6 +5,7 @@ import Assignment from '@/lib/models/Assignment';
 import BatchJoinRequest from '@/lib/models/BatchJoinRequest';
 import { getUserFromRequest, generateBatchCode } from '@/lib/auth';
 import { getInstructorBatchMatch } from '@/lib/batchAccess';
+import { getOwnedBatchIds } from '@/lib/adminScope';
 
 // GET batches based on user role
 export async function GET(req) {
@@ -22,7 +23,9 @@ export async function GET(req) {
       filter.$or = getInstructorBatchMatch(currentUser._id).$or;
     } else if (currentUser.role === 'STUDENT') {
       filter.students = currentUser._id;
-    } else if (currentUser.role !== 'SUPER_ADMIN') {
+    } else if (currentUser.role === 'SUPER_ADMIN') {
+      filter._id = { $in: await getOwnedBatchIds(currentUser._id) };
+    } else {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

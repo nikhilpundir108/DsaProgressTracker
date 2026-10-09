@@ -4,6 +4,7 @@ import User from '@/lib/models/User';
 import Batch from '@/lib/models/Batch';
 import { getUserFromRequest, generateInstructorId } from '@/lib/auth';
 import { createSupabaseAdminClient, createSupabaseAuthClient } from '@/lib/supabase';
+import { ensureLegacyInstructorOwnership } from '@/lib/adminScope';
 
 // GET all instructors with their batch counts
 export async function GET(req) {
@@ -15,7 +16,8 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const instructors = await User.find({ role: 'INSTRUCTOR' })
+    await ensureLegacyInstructorOwnership();
+    const instructors = await User.find({ role: 'INSTRUCTOR', ownerSuperAdminId: currentUser._id })
       .select('-password')
       .sort({ createdAt: -1 })
       .lean();
@@ -109,6 +111,7 @@ export async function POST(req) {
         email: cleanEmail,
         supabaseId: authData.user.id,
         role: 'INSTRUCTOR',
+        ownerSuperAdminId: currentUser._id,
         instructorId,
         phone: phone?.trim() || '',
         department: department?.trim() || 'Computer Science',

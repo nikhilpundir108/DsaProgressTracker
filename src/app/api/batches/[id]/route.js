@@ -6,6 +6,7 @@ import Assignment from '@/lib/models/Assignment';
 import BatchJoinRequest from '@/lib/models/BatchJoinRequest';
 import { getUserFromRequest } from '@/lib/auth';
 import { isBatchInstructor } from '@/lib/batchAccess';
+import { isOwnedBatch } from '@/lib/adminScope';
 
 // GET batch by ID
 export async function GET(req, { params }) {
@@ -31,6 +32,8 @@ export async function GET(req, { params }) {
       if (!isBatchInstructor(batch, currentUser._id)) {
         return NextResponse.json({ error: 'You do not have permission to view this batch' }, { status: 403 });
       }
+    } else if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, batch._id))) {
+      return NextResponse.json({ error: 'You do not have permission to view this batch' }, { status: 403 });
     } else if (currentUser.role === 'STUDENT') {
       const isEnrolled = batch.students.some((s) => s._id.toString() === currentUser._id.toString());
       if (!isEnrolled) {
@@ -79,6 +82,9 @@ export async function PUT(req, { params }) {
     if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
       return NextResponse.json({ error: 'You cannot edit another instructor batch' }, { status: 403 });
     }
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, batch._id))) {
+      return NextResponse.json({ error: 'You cannot edit another Super Admin batch' }, { status: 403 });
+    }
 
     const body = await req.json();
     if (body.name) batch.name = body.name.trim();
@@ -117,6 +123,9 @@ export async function DELETE(req, { params }) {
     }
 
     if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, batch._id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

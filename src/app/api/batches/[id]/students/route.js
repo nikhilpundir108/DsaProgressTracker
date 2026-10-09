@@ -6,6 +6,7 @@ import Assignment from '@/lib/models/Assignment';
 import Submission from '@/lib/models/Submission';
 import { getUserFromRequest } from '@/lib/auth';
 import { isBatchInstructor } from '@/lib/batchAccess';
+import { isOwnedBatch } from '@/lib/adminScope';
 
 // GET students in batch with detailed stats
 export async function GET(req, { params }) {
@@ -23,6 +24,9 @@ export async function GET(req, { params }) {
     }
 
     if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, batch._id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -59,6 +63,9 @@ export async function DELETE(req, { params }) {
     }
 
     if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, batch._id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

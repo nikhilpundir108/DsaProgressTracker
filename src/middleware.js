@@ -5,7 +5,7 @@ export async function middleware(req) {
   const limited = await enforceRateLimit(req, {
     namespace: 'api-global',
     key: getClientIp(req),
-    limit: 120,
+    limit: 300,
     window: '1 m',
   });
 

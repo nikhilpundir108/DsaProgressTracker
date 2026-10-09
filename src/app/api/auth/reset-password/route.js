@@ -8,7 +8,7 @@ export async function POST(req) {
   const rateLimitResponse = await enforceRateLimit(req, {
     namespace: 'reset-password-ip',
     key: getClientIp(req),
-    limit: 10,
+    limit: 20,
     window: '15 m',
   });
   if (rateLimitResponse) return rateLimitResponse;

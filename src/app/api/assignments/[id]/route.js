@@ -5,6 +5,8 @@ import Batch from '@/lib/models/Batch';
 import Submission from '@/lib/models/Submission';
 import User from '@/lib/models/User';
 import { getUserFromRequest } from '@/lib/auth';
+import { isBatchInstructor } from '@/lib/batchAccess';
+import { isOwnedBatch } from '@/lib/adminScope';
 
 // GET assignment details
 export async function GET(req, { params }) {
@@ -23,6 +25,13 @@ export async function GET(req, { params }) {
 
     if (!assignment) {
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
+    }
+
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, assignment.batchId._id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(assignment.batchId, currentUser._id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const isExpired = new Date() > new Date(assignment.deadline);
@@ -138,6 +147,9 @@ export async function PUT(req, { params }) {
     if (currentUser.role === 'INSTRUCTOR' && assignment.instructorId.toString() !== currentUser._id.toString()) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, assignment.batchId))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const body = await req.json();
     if (body.title) assignment.title = body.title.trim();
@@ -176,6 +188,9 @@ export async function DELETE(req, { params }) {
     }
 
     if (currentUser.role === 'INSTRUCTOR' && assignment.instructorId.toString() !== currentUser._id.toString()) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, assignment.batchId))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

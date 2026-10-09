@@ -25,6 +25,11 @@ const UserSchema = new mongoose.Schema(
       default: 'STUDENT',
       required: true,
     },
+    ownerSuperAdminId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      index: true,
+    },
     googleId: {
       type: String,
       sparse: true,

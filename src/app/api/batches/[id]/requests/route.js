@@ -5,6 +5,7 @@ import BatchJoinRequest from '@/lib/models/BatchJoinRequest';
 import User from '@/lib/models/User';
 import { getUserFromRequest } from '@/lib/auth';
 import { isBatchInstructor } from '@/lib/batchAccess';
+import { isOwnedBatch } from '@/lib/adminScope';
 
 // GET pending join requests for batch
 export async function GET(req, { params }) {
@@ -22,6 +23,9 @@ export async function GET(req, { params }) {
     }
 
     if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, batch._id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -56,6 +60,9 @@ export async function POST(req, { params }) {
     }
 
     if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, batch._id))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

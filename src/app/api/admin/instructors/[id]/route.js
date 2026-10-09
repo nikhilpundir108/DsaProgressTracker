@@ -4,6 +4,7 @@ import User from '@/lib/models/User';
 import Batch from '@/lib/models/Batch';
 import { getUserFromRequest } from '@/lib/auth';
 import { createSupabaseAdminClient, createSupabaseAuthClient } from '@/lib/supabase';
+import { ensureLegacyInstructorOwnership } from '@/lib/adminScope';
 
 // GET instructor details with their batches
 export async function GET(req, { params }) {
@@ -15,7 +16,12 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const instructor = await User.findOne({ _id: params.id, role: 'INSTRUCTOR' })
+    await ensureLegacyInstructorOwnership();
+    const instructor = await User.findOne({
+      _id: params.id,
+      role: 'INSTRUCTOR',
+      ownerSuperAdminId: currentUser._id,
+    })
       .select('-password')
       .lean();
 
@@ -23,7 +29,9 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: 'Instructor not found' }, { status: 404 });
     }
 
-    const batches = await Batch.find({ instructorId: params.id })
+    const batches = await Batch.find({
+      $or: [{ instructorId: params.id }, { instructorIds: params.id }],
+    })
       .populate('students', 'name email collegeRollNo')
       .lean();
 
@@ -50,8 +58,13 @@ export async function PUT(req, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    await ensureLegacyInstructorOwnership();
     const body = await req.json();
-    const instructor = await User.findOne({ _id: params.id, role: 'INSTRUCTOR' });
+    const instructor = await User.findOne({
+      _id: params.id,
+      role: 'INSTRUCTOR',
+      ownerSuperAdminId: currentUser._id,
+    });
 
     if (!instructor) {
       return NextResponse.json({ error: 'Instructor not found' }, { status: 404 });
@@ -166,7 +179,12 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const instructor = await User.findOne({ _id: params.id, role: 'INSTRUCTOR' });
+    await ensureLegacyInstructorOwnership();
+    const instructor = await User.findOne({
+      _id: params.id,
+      role: 'INSTRUCTOR',
+      ownerSuperAdminId: currentUser._id,
+    });
     if (!instructor) {
       return NextResponse.json({ error: 'Instructor not found' }, { status: 404 });
     }

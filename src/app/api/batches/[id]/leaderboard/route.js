@@ -4,6 +4,8 @@ import Batch from '@/lib/models/Batch';
 import Assignment from '@/lib/models/Assignment';
 import Submission from '@/lib/models/Submission';
 import { getUserFromRequest } from '@/lib/auth';
+import { isBatchInstructor } from '@/lib/batchAccess';
+import { isOwnedBatch } from '@/lib/adminScope';
 
 export async function GET(req, { params }) {
   try {
@@ -17,6 +19,16 @@ export async function GET(req, { params }) {
     const batch = await Batch.findById(params.id).populate('students').lean();
     if (!batch) {
       return NextResponse.json({ error: 'Batch not found' }, { status: 404 });
+    }
+
+    if (currentUser.role === 'INSTRUCTOR' && !isBatchInstructor(batch, currentUser._id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, batch._id))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (currentUser.role === 'STUDENT' && !batch.students.some((id) => id._id.toString() === currentUser._id.toString())) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const assignments = await Assignment.find({ batchId: params.id }).lean();

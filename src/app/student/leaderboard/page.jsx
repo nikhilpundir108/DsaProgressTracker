@@ -122,10 +122,6 @@ export default function StudentLeaderboardPage() {
                     <tr className="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                       <th className="py-3 px-4 w-16">Rank</th>
                       <th className="py-3 px-4">Student</th>
-                      <th className="py-3 px-4 text-right">LC Solved</th>
-                      <th className="py-3 px-4 text-right">GFG Solved</th>
-                      <th className="py-3 px-4 text-right">Total Solved</th>
-                      <th className="py-3 px-4 text-right">Assignment %</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
@@ -162,29 +158,7 @@ export default function StudentLeaderboardPage() {
                           )}
                         </td>
                         <td className="py-3.5 px-4 font-semibold text-white">
-                          <div className="flex items-center gap-2">
-                            <span>{row.name}</span>
-                            {row.isCurrentUser && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40">
-                                You
-                              </span>
-                            )}
-                            <span className="text-[10px] text-slate-500 font-mono">
-                              ({row.collegeRollNo || row.branch})
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-mono font-bold text-amber-400">
-                          {row.leetcodeSolved}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-mono font-bold text-emerald-400">
-                          {row.gfgSolved}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-mono font-bold text-teal-300">
-                          {row.totalSolved}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-mono font-bold text-emerald-400">
-                          {row.assignmentPercentage}%
+                          {row.name}
                         </td>
                       </tr>
                     ))}

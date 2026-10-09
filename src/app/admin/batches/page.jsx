@@ -61,14 +61,14 @@ export default function AdminBatchesPage() {
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Navbar title="All College Batches" />
+        <Navbar title="Managed Batches" />
 
         <main className="p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-white tracking-tight">College Batches</h2>
+                <h2 className="text-2xl font-bold text-white tracking-tight">Managed Batches</h2>
               <p className="text-xs text-slate-400 mt-1">
-                Overview of all DSA course batches created across all faculty instructors
+                DSA course batches created by your instructors or shared with them
               </p>
             </div>
 

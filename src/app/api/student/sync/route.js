@@ -3,6 +3,9 @@ import dbConnect from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 import { syncStudentData, syncBatchData } from '@/lib/platforms/sync';
 import { enforceRateLimit } from '@/lib/rateLimit';
+import { getOwnedBatchIds, isOwnedBatch } from '@/lib/adminScope';
+import User from '@/lib/models/User';
+import Batch from '@/lib/models/Batch';
 
 export async function POST(req) {
   try {
@@ -16,7 +19,7 @@ export async function POST(req) {
     const rateLimitResponse = await enforceRateLimit(req, {
       namespace: 'platform-sync-user',
       key: currentUser._id.toString(),
-      limit: 10,
+      limit: 30,
       window: '5 m',
     });
     if (rateLimitResponse) return rateLimitResponse;
@@ -26,6 +29,9 @@ export async function POST(req) {
 
     // If instructor or admin passes studentId or batchId
     if (body.batchId && (currentUser.role === 'INSTRUCTOR' || currentUser.role === 'SUPER_ADMIN')) {
+      if (currentUser.role === 'SUPER_ADMIN' && !(await isOwnedBatch(currentUser._id, body.batchId))) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
       const batchResult = await syncBatchData(body.batchId);
       return NextResponse.json({
         success: true,
@@ -35,6 +41,17 @@ export async function POST(req) {
     }
 
     if (body.studentId && (currentUser.role === 'INSTRUCTOR' || currentUser.role === 'SUPER_ADMIN')) {
+      if (currentUser.role === 'SUPER_ADMIN') {
+        const ownedBatchIds = await getOwnedBatchIds(currentUser._id);
+        const studentIsInOwnedBatch = await Batch.exists({
+          students: body.studentId,
+          _id: { $in: ownedBatchIds },
+        });
+        const studentExists = await User.exists({ _id: body.studentId, role: 'STUDENT' });
+        if (!studentIsInOwnedBatch || !studentExists) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+      }
       targetStudentId = body.studentId;
     }
 

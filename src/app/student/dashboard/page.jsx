@@ -13,6 +13,7 @@ import { StatusBadge, DifficultyBadge, PlatformBadge } from '@/components/Badge'
 import { EmptyState } from '@/components/EmptyState';
 import { Modal } from '@/components/Modal';
 import {
+  AlertCircle,
   GraduationCap,
   Layers,
   BookOpen,

@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db';
 import User from '@/lib/models/User';
 import Batch from '@/lib/models/Batch';
 import { getUserFromRequest } from '@/lib/auth';
+import { getOwnedBatchIds } from '@/lib/adminScope';
 
 export async function GET(req) {
   try {
@@ -13,13 +14,17 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const students = await User.find({ role: 'STUDENT' })
+    const batchIds = await getOwnedBatchIds(currentUser._id);
+    const batches = await Batch.find({ _id: { $in: batchIds } })
+      .select('name code students')
+      .lean();
+    const studentIds = [...new Set(batches.flatMap((batch) => batch.students.map((id) => id.toString())))];
+
+    const students = await User.find({ _id: { $in: studentIds }, role: 'STUDENT' })
       .select('-password')
       .sort({ createdAt: -1 })
       .lean();
 
-    // Map batches
-    const batches = await Batch.find({ isArchived: { $ne: true } }).select('name code students').lean();
     const studentBatchMap = {};
     batches.forEach((b) => {
       (b.students || []).forEach((sId) => {

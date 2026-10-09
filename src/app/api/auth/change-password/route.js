@@ -14,7 +14,7 @@ export async function POST(req) {
     const rateLimitResponse = await enforceRateLimit(req, {
       namespace: 'change-password-user',
       key: currentUser._id.toString(),
-      limit: 5,
+      limit: 10,
       window: '15 m',
     });
     if (rateLimitResponse) return rateLimitResponse;

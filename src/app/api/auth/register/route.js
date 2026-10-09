@@ -12,7 +12,7 @@ export async function POST(req) {
     const ipLimit = await enforceRateLimit(req, {
       namespace: 'register-ip',
       key: ip,
-      limit: 5,
+      limit: 20,
       window: '1 h',
     });
     if (ipLimit) return ipLimit;
@@ -24,7 +24,7 @@ export async function POST(req) {
     const emailLimit = await enforceRateLimit(req, {
       namespace: 'register-email',
       key: `${ip}:${cleanEmail || 'missing'}`,
-      limit: 3,
+      limit: 10,
       window: '1 h',
     });
     if (emailLimit) return emailLimit;
