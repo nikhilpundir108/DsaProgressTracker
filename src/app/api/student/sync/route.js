@@ -19,7 +19,7 @@ export async function POST(req) {
     const rateLimitResponse = await enforceRateLimit(req, {
       namespace: 'platform-sync-user',
       key: currentUser._id.toString(),
-      limit: 30,
+      limit: 90,
       window: '5 m',
     });
     if (rateLimitResponse) return rateLimitResponse;

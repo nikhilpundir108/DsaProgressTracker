@@ -14,7 +14,7 @@ export async function POST(req) {
     const rateLimitResponse = await enforceRateLimit(req, {
       namespace: 'verify-handle-user',
       key: currentUser._id.toString(),
-      limit: 30,
+      limit: 90,
       window: '10 m',
     });
     if (rateLimitResponse) return rateLimitResponse;

@@ -14,7 +14,7 @@ export async function POST(req) {
   const ipLimit = await enforceRateLimit(req, {
     namespace: 'forgot-password-ip',
     key: ip,
-    limit: 20,
+    limit: 60,
     window: '1 h',
   });
   if (ipLimit) return ipLimit;
@@ -29,8 +29,8 @@ export async function POST(req) {
     const emailLimit = await enforceRateLimit(req, {
       namespace: 'forgot-password-email',
       key: `${ip}:${cleanEmail}`,
-      limit: 8,
-      window: '15 m',
+      limit: 25,
+      window: '1 h',
     });
     if (emailLimit) return emailLimit;
 

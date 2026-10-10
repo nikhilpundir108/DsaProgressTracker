@@ -41,6 +41,19 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Enable email confirmation in Supabase Auth and add `http://localhost:3000/student/login` to the allowed redirect URLs. For deployment, add the corresponding production student login URL. Student registration is limited to `@mit.ac.in` and `@miet.ac.in`; staff accounts must be created by a Super Admin.
 
+### Supabase Auth Email Delivery
+
+Supabase's built-in email service is for testing: it is limited to 2 emails per hour across the project and only delivers to authorized project team addresses. Signups, instructor creation, password recovery, and other Auth email flows share this service, so an instructor's first request can fail after another flow has already used the quota.
+
+For real users, configure a transactional email provider such as Resend, Brevo, SendGrid, Postmark, or Amazon SES:
+
+1. Verify a sender domain with the provider and publish its SPF/DKIM records.
+2. In the Supabase Dashboard, open **Authentication > Emails > SMTP Settings**, enable custom SMTP, and enter the provider's host, port, username, password, and verified sender address/name.
+3. Keep email confirmation enabled. In **Authentication > Rate Limits**, raise the email sending limit above its custom-SMTP default of 30 per hour if needed, while staying within the provider's sending quota.
+4. Retry instructor creation and check the Supabase Auth logs and provider logs if delivery still fails. Avoid link tracking that rewrites confirmation URLs.
+
+SMTP credentials belong in the Supabase dashboard, not in this app's environment variables. The existing `auth.signUp()` flow will use the configured Supabase SMTP transport; no separate email sender is needed in the application.
+
 ---
 
 ## 3. Installation & Database Seeding

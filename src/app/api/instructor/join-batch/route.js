@@ -17,7 +17,7 @@ export async function POST(req) {
     const rateLimitResponse = await enforceRateLimit(req, {
       namespace: 'instructor-join-batch-user',
       key: currentUser._id.toString(),
-      limit: 30,
+      limit: 90,
       window: '1 h',
     });
     if (rateLimitResponse) return rateLimitResponse;

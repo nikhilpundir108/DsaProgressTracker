@@ -90,7 +90,27 @@ export async function POST(req) {
       },
     });
     if (authError || !authData.user) {
-      return NextResponse.json({ error: authError?.message || 'Could not create instructor authentication' }, { status: 400 });
+      const authErrorDetails = `${authError?.code || ''} ${authError?.message || ''}`.toLowerCase();
+      const emailDeliveryFailed =
+        authErrorDetails.includes('over_email_send_rate_limit') ||
+        /email.{0,40}(rate limit|send|deliver)|(?:rate limit|send|deliver).{0,40}email|confirmation email|smtp/.test(
+          authErrorDetails
+        );
+
+      console.error('Supabase instructor signup failed:', {
+        code: authError?.code,
+        message: authError?.message,
+        status: authError?.status,
+      });
+
+      return NextResponse.json(
+        {
+          error: emailDeliveryFailed
+            ? 'Supabase Auth could not deliver the confirmation email. Check the project Auth logs and SMTP settings. The default Supabase mailer is limited to 2 emails per hour; configure custom SMTP for higher-volume delivery.'
+            : authError?.message || 'Could not create instructor authentication',
+        },
+        { status: emailDeliveryFailed ? 503 : 400 }
+      );
     }
     if (authData.user.identities?.length === 0) {
       return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 });

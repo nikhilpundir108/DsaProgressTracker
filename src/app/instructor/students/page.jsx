@@ -13,7 +13,11 @@ export default function InstructorStudentsDirectoryPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [batches, setBatches] = useState([]);
+  const [selectedBatchId, setSelectedBatchId] = useState('');
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [studentsError, setStudentsError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -28,7 +32,9 @@ export default function InstructorStudentsDirectoryPage() {
         const res = await fetch('/api/batches');
         if (res.ok) {
           const data = await res.json();
-          setBatches(data.batches || []);
+          const instructorBatches = data.batches || [];
+          setBatches(instructorBatches);
+          setSelectedBatchId(instructorBatches[0]?._id || '');
         }
       } catch (e) {
         console.error(e);
@@ -40,19 +46,49 @@ export default function InstructorStudentsDirectoryPage() {
     if (user) loadAllStudents();
   }, [user]);
 
-  // Aggregate distinct students from instructor batches
-  const studentMap = new Map();
-  batches.forEach((b) => {
-    (b.students || []).forEach((s) => {
-      if (typeof s === 'object' && s._id) {
-        if (!studentMap.has(s._id)) {
-          studentMap.set(s._id, { ...s, batchName: b.name, batchCode: b.code });
-        }
-      }
-    });
-  });
+  useEffect(() => {
+    if (!selectedBatchId) {
+      setStudents([]);
+      setLoadingStudents(false);
+      setStudentsError('');
+      return;
+    }
 
-  const students = Array.from(studentMap.values());
+    let cancelled = false;
+    const loadBatchStudents = async () => {
+      setLoadingStudents(true);
+      setStudentsError('');
+
+      try {
+        const response = await fetch(`/api/batches/${selectedBatchId}/students`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Could not load enrolled students');
+
+        if (!cancelled) {
+          const selectedBatch = batches.find((batch) => batch._id === selectedBatchId);
+          setStudents(
+            (data.students || []).map((student) => ({
+              ...student,
+              batchName: selectedBatch?.name,
+              batchCode: selectedBatch?.code,
+            }))
+          );
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setStudents([]);
+          setStudentsError(error.message || 'Could not load enrolled students');
+        }
+      } finally {
+        if (!cancelled) setLoadingStudents(false);
+      }
+    };
+
+    loadBatchStudents();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBatchId, batches]);
 
   const filtered = students.filter(
     (s) =>
@@ -69,23 +105,40 @@ export default function InstructorStudentsDirectoryPage() {
         <Navbar title="Enrolled Students" />
 
         <main className="p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">Student Directory</h1>
               <p className="text-xs text-slate-400 mt-1">
-                All students currently enrolled across your DSA sections
+                Students enrolled in your DSA batches
               </p>
             </div>
 
-            <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-              <input
-                type="text"
-                placeholder="Search by student name, roll no, email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700/60 text-white text-xs focus:outline-none focus:border-brand-500"
-              />
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              {batches.length > 0 && (
+                <select
+                  aria-label="Filter students by batch"
+                  value={selectedBatchId}
+                  onChange={(event) => setSelectedBatchId(event.target.value)}
+                  className="w-full sm:w-64 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/60 text-white text-xs focus:outline-none focus:border-brand-500"
+                >
+                  {batches.map((batch) => (
+                    <option key={batch._id} value={batch._id}>
+                      {batch.name} ({batch.code})
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  placeholder="Search by student name, roll no, email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/60 text-white text-xs focus:outline-none focus:border-brand-500"
+                />
+              </div>
             </div>
           </div>
 
@@ -102,16 +155,22 @@ export default function InstructorStudentsDirectoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {loading ? (
+                {loading || loadingStudents ? (
                   <tr>
                     <td colSpan={6} className="text-center py-8 text-slate-500">
                       Loading students...
                     </td>
                   </tr>
+                ) : studentsError ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-8 text-rose-300">
+                      {studentsError}
+                    </td>
+                  </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="text-center py-8 text-slate-500">
-                      No enrolled students found.
+                      {batches.length === 0 ? 'No batches are available.' : 'No students are enrolled in this batch yet.'}
                     </td>
                   </tr>
                 ) : (

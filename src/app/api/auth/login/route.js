@@ -18,7 +18,7 @@ export async function POST(req) {
     const ipLimit = await enforceRateLimit(req, {
       namespace: 'login-ip',
       key: ip,
-      limit: 60,
+      limit: 180,
       window: '15 m',
     });
     if (ipLimit) return ipLimit;
@@ -26,7 +26,7 @@ export async function POST(req) {
     const accountLimit = await enforceRateLimit(req, {
       namespace: 'login-account',
       key: `${ip}:${typeof identifier === 'string' ? identifier.trim().toLowerCase() : 'missing'}`,
-      limit: 12,
+      limit: 30,
       window: '15 m',
     });
     if (accountLimit) return accountLimit;
