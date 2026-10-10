@@ -72,14 +72,45 @@ query getRecentAc($username: String!) {
 
 ## 2. GeeksforGeeks Integration (`src/lib/platforms/gfg.js`)
 
-GeeksforGeeks tracking captures college-level practice problems and overall institutional coding score:
+GeeksforGeeks tracking captures college-level practice problems, contest statistics, and overall coding scores:
 
-* **Endpoint / Profile URL**: `https://auth.geeksforgeeks.org/user/${cleanHandle}/practice/`
+### 2.1 Primary Endpoint: Tashif GFG Stats API
+* **Endpoint URL**: `https://gfg-stats.tashif.codes/${cleanHandle}`
+* **HTTP Method**: `GET`
+* **Timeout**: 8,000ms with `AbortController`
+* **Response Payload Schema**:
+```json
+{
+  "userName": "nikhil4gfg",
+  "totalProblemsSolved": 50,
+  "status": "success",
+  "message": "retrieved",
+  "platform": "gfg",
+  "username": "nikhil4gfg",
+  "cached": false,
+  "data": {
+    "totalSolved": 50,
+    "totalActiveDays": 15,
+    "totalContests": 0,
+    "currentRating": null,
+    "maxRating": null,
+    "rank": null,
+    "badgesCount": 0
+  }
+}
+```
+
+### 2.2 Supplementary Solved Problems Endpoint
+* **Endpoint URL**: `https://gfg-stats.tashif.codes/${cleanHandle}/solved-problems`
+* **HTTP Method**: `GET`
 * **Extracted Metrics**:
-  * `totalSolved`: Total number of solved GFG practice questions.
-  * `easySolved`, `mediumSolved`, `hardSolved`: Difficulty categorization.
-  * `codingScore`: Overall GFG practice score points.
-  * `recentSubmissions`: Array of `{ title, slug, timestamp }`.
+  * `totalSolved` / `totalProblemsSolved`: Total number of solved GFG practice questions.
+  * `easySolved`, `mediumSolved`, `hardSolved`, `basicSolved`, `schoolSolved`: Difficulty categorization.
+  * `codingScore`: Overall GFG practice score points (`(school*1) + (basic*1) + (easy*2) + (medium*4) + (hard*8)`).
+  * `totalActiveDays`: Total active coding days on GFG.
+  * `totalContests`: Number of GFG contests participated.
+  * `currentRating`, `maxRating`, `rank`, `badgesCount`: Contest and ranking performance stats.
+  * `recentSubmissions`: Array of `{ title, slug, difficulty, questionUrl, timestamp }`.
 
 ---
 

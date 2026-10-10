@@ -72,16 +72,26 @@ export async function syncStudentData(studentId) {
           easySolved: gfgData.easySolved,
           mediumSolved: gfgData.mediumSolved,
           hardSolved: gfgData.hardSolved,
+          basicSolved: gfgData.basicSolved || 0,
+          schoolSolved: gfgData.schoolSolved || 0,
           codingScore: gfgData.codingScore,
+          totalActiveDays: gfgData.totalActiveDays || 0,
+          totalContests: gfgData.totalContests || 0,
+          currentRating: gfgData.currentRating || null,
+          maxRating: gfgData.maxRating || null,
+          rank: gfgData.rank || null,
+          badgesCount: gfgData.badgesCount || 0,
           recentSubmissions: gfgData.recentSubmissions || [],
           lastFetched: new Date(),
         };
 
         (gfgData.recentSubmissions || []).forEach((sub) => {
+          if (sub.slug) allSolvedSlugs.add(normalizeSlug(sub.slug));
+          if (sub.title) allSolvedSlugs.add(normalizeSlug(sub.title));
           const norm = normalizeSlug(sub.slug || sub.title);
-          allSolvedSlugs.add(norm);
           if (sub.timestamp) {
             solvedTimestampMap.set(norm, new Date(sub.timestamp));
+            if (sub.title) solvedTimestampMap.set(normalizeSlug(sub.title), new Date(sub.timestamp));
           }
         });
       }
