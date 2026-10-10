@@ -7,7 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "test:smoke": "k6 run k6/smoke.js",
+    "test:50": "k6 run k6/test-50.js",
+    "test:load": "k6 run k6/load.js",
+    "test:stress": "k6 run k6/stress.js",
+    "test:spike": "k6 run k6/spike.js",
+    "test:sync": "k6 run k6/sync.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

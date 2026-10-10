@@ -65,4 +65,7 @@ const AssignmentSchema = new mongoose.Schema(
   }
 );
 
+AssignmentSchema.index({ batchId: 1 });
+AssignmentSchema.index({ instructorId: 1 });
+
 export default mongoose.models.Assignment || mongoose.model('Assignment', AssignmentSchema);

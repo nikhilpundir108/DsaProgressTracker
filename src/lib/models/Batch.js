@@ -60,6 +60,11 @@ const BatchSchema = new mongoose.Schema(
   }
 );
 
+BatchSchema.index({ instructorId: 1 });
+BatchSchema.index({ instructorIds: 1 });
+BatchSchema.index({ students: 1 });
+BatchSchema.index({ isArchived: 1 });
+
 if (mongoose.models.Batch && !mongoose.models.Batch.schema.path('instructorIds')) {
   mongoose.deleteModel('Batch');
 }
