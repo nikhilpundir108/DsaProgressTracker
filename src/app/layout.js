@@ -2,6 +2,8 @@ import './globals.css';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from '@/components/AuthContext';
 import { ToastContainer } from 'react-toastify';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: 'DSATrack — College DSA Progress & Assignment Tracking Platform',
@@ -21,6 +23,8 @@ export default function RootLayout({ children }) {
       </head>
       <body className="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-brand-500 selection:text-white">
         <AuthProvider>
+          <SpeedInsights />
+          <Analytics />
           {children}
           <ToastContainer position="top-right" autoClose={4000} theme="dark" />
         </AuthProvider>
