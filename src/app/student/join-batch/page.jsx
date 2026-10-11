@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Sparkles,
 } from 'lucide-react';
 
 export default function StudentJoinBatchPage() {
@@ -166,12 +165,6 @@ export default function StudentJoinBatchPage() {
                   {loading ? 'Submitting Join Request...' : 'Request to Join'}
                 </button>
               </form>
-
-              {/* Sample available demo code hint */}
-              <div className="pt-4 border-t border-slate-800 text-xs text-slate-500 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Example active college batch codes: <code className="text-slate-300 font-bold">DSA-CSE-A26</code>, <code className="text-slate-300 font-bold">DSA-CSE-B26</code>, <code className="text-slate-300 font-bold">DSA-IT-A26</code></span>
-              </div>
             </div>
           )}
         </main>

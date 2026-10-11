@@ -25,8 +25,8 @@ export default function CreateInstructorPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [department, setDepartment] = useState('Computer Science & Engineering');
-  const [password, setPassword] = useState('password123');
-  const [confirmPassword, setConfirmPassword] = useState('password123');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -242,7 +242,7 @@ export default function CreateInstructorPage() {
                     <input
                       type="email"
                       required
-                      placeholder="e.g. rahul@mit.ac.in"
+                      placeholder="e.g. instructor@college.ac.in"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-purple-500"

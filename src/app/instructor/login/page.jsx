@@ -12,7 +12,6 @@ import {
   ArrowRight,
   Code2,
   KeyRound,
-  Sparkles,
 } from 'lucide-react';
 import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
@@ -26,12 +25,6 @@ export default function InstructorLoginPage() {
   const [loading, setLoading] = useState(false);
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
 
-  const demoInstructors = [
-    { name: 'Prof. Rahul Sharma', id: 'INS001', email: 'rahul@mit.ac.in', pass: 'password123', batches: 'CSE Sec A & B' },
-    { name: 'Dr. Sunita Verma', id: 'INS002', email: 'sunita@miet.ac.in', pass: 'password123', batches: 'IT Sec A' },
-    { name: 'Prof. Amit Patel (Inactive test)', id: 'INS003', email: 'amit@mit.ac.in', pass: 'password123', batches: 'Disabled by Admin' },
-  ];
-
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
     setLoading(true);
@@ -43,11 +36,6 @@ export default function InstructorLoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickFill = (insId, pass) => {
-    setIdentifier(insId);
-    setPassword(pass);
   };
 
   return (
@@ -87,7 +75,7 @@ export default function InstructorLoginPage() {
               <input
                 type="text"
                 required
-                placeholder="e.g. INS001 or rahul@mit.ac.in"
+                placeholder="e.g. INS001 or instructor@college.ac.in"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 transition"
@@ -139,35 +127,6 @@ export default function InstructorLoginPage() {
             {loading ? 'Authenticating...' : 'Sign In as Instructor'}
           </button>
         </form>
-
-        {/* Quick 1-Click Demo Instructors */}
-        <div className="mt-8 pt-6 border-t border-slate-800">
-          <p className="text-xs font-semibold text-slate-400 mb-3 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            <span>1-Click Test Instructor Credentials:</span>
-          </p>
-
-          <div className="space-y-2">
-            {demoInstructors.map((ins) => (
-              <button
-                key={ins.id}
-                onClick={() => handleQuickFill(ins.id, ins.pass)}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-indigo-500/40 text-left transition group"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-200 group-hover:text-indigo-300">{ins.name}</span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
-                      {ins.id}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Password: {ins.pass} ({ins.batches})</p>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition" />
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       <div className="mt-6 flex items-center gap-4 text-xs text-slate-500">

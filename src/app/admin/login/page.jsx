@@ -10,7 +10,6 @@ import {
   User,
   ArrowRight,
   Code2,
-  Sparkles,
 } from 'lucide-react';
 import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
@@ -33,11 +32,6 @@ export default function SuperAdminLoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickFill = () => {
-    setIdentifier('admin@mit.ac.in');
-    setPassword('admin123');
   };
 
   return (
@@ -78,7 +72,7 @@ export default function SuperAdminLoginPage() {
                 type="text"
                 autoComplete="email"
                 required
-                placeholder="admin@mit.ac.in or ADMIN001"
+                placeholder="admin@college.ac.in or ADMIN001"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-purple-500 transition"
@@ -119,30 +113,6 @@ export default function SuperAdminLoginPage() {
             {loading ? 'Authenticating...' : 'Sign In as Super Admin'}
           </button>
         </form>
-
-        {/* Quick 1-Click Demo Fill */}
-        <div className="mt-8 pt-6 border-t border-slate-800">
-          <p className="text-xs font-semibold text-slate-400 mb-3 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span>1-Click Test Admin Account:</span>
-          </p>
-
-          <button
-            onClick={handleQuickFill}
-            className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-purple-500/40 text-left transition group"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-200 group-hover:text-purple-300">Super Administrator</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-800/40">
-                  ADMIN001
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 mt-0.5">Email: admin@mit.ac.in • Pass: admin123</p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition" />
-          </button>
-        </div>
 
         <p className="mt-6 text-center text-sm text-slate-400">
           Need an administrator account?{' '}

@@ -1,43 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useAuth } from './AuthContext';
-import {
-  RefreshCw,
-  Database,
-  Bell,
-  Code2,
-  ExternalLink,
-  CheckCircle,
-  Menu,
-  X,
-} from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export function Navbar({ title, onSync, isSyncing }) {
   const { user, logout, refreshUser } = useAuth();
-  const [reseedLoading, setReseedLoading] = useState(false);
-  const [reseedSuccess, setReseedSuccess] = useState(false);
-
-  const handleReseed = async () => {
-    if (!confirm('Reseed database with fresh demo data? (All testing accounts and sample submissions will be restored)')) {
-      return;
-    }
-    setReseedLoading(true);
-    try {
-      const res = await fetch('/api/seed', { method: 'POST' });
-      if (res.ok) {
-        setReseedSuccess(true);
-        setTimeout(() => setReseedSuccess(false), 4000);
-        await refreshUser();
-        window.location.reload();
-      }
-    } catch (e) {
-      alert('Error reseeding: ' + e.message);
-    } finally {
-      setReseedLoading(false);
-    }
-  };
 
   return (
     <header className="h-16 px-6 bg-slate-900/60 backdrop-blur-md border-b border-slate-800 flex items-center justify-between sticky top-0 z-20">
@@ -56,24 +25,6 @@ export function Navbar({ title, onSync, isSyncing }) {
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-brand-400' : ''}`} />
             <span>{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
           </button>
-        )}
-
-        {/* Demo Data Reseed quick action */}
-        <button
-          onClick={handleReseed}
-          disabled={reseedLoading}
-          title="Reset / Reseed Demo Data"
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 transition"
-        >
-          <Database className="w-3.5 h-3.5 text-slate-400" />
-          <span>{reseedLoading ? 'Seeding...' : 'Reset Demo Data'}</span>
-        </button>
-
-        {reseedSuccess && (
-          <span className="text-xs text-emerald-400 flex items-center gap-1 font-medium animate-fadeIn">
-            <CheckCircle className="w-3.5 h-3.5" />
-            <span>Demo Data Ready</span>
-          </span>
         )}
 
         {/* College domain indicator */}
